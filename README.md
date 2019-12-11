@@ -10,20 +10,22 @@ view functions into a single call and reads all the state in one EVM round-trip.
 #### Initialization
 
 The library needs to be used in conjuction with a contract deployed on chain.
-We have deployed two variants on Mainnet and Ropsten so far which can be accessed
-through presets:
+We have deployed two variants on Mainnet and Ropsten so far by using the provided configs:
+
 
 ```go
-mc, err := multicall.New(eth, multicall.Config{
-    Preset: "mainnet",
-})
+// Mainnet
+mc, err := multicall.New(eth, multicall.MainnetConfig)
+// Ropsten
+mc, err := multicall.New(eth, multicall.MainnetConfig)
 ```
 
 Alternatively the address can be passed in directly:
 
 ```go
 mc, err := multicall.New(eth, multicall.Config{
-    MulticallAddress: "0x0.",
+    MulticallAddress: "0x0",
+    Gas: "0x400000000",
 })
 ```
 

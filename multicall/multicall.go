@@ -2,7 +2,6 @@ package multicall
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/alethio/web3-go/ethrpc"
 )
 
@@ -13,28 +12,18 @@ type Multicall struct {
 
 type Config struct {
 	MulticallAddress string
-	Preset           string
+	Gas				 string
 }
 
-type preset struct {
-	multicallAddress string
-}
+var (
+	// MainnetConfig exposes a default config for the mainnet multicall contract
+	MainnetConfig = Config{"0x5eb3fa2dfecdde21c950813c665e9364fa609bd2", "0x4000000000000"}
+	// RopstenConfig exposes a default config for the ropsten multicall contract
+	RopstenConfig = Config{"0xf3ad7e31b052ff96566eedd218a823430e74b406", "0x4000000000000"}
+)
 
-var presets = map[string]preset{
-	"ropsten": preset{"0xf3ad7e31b052ff96566eedd218a823430e74b406"},
-	"mainnet": preset{"0x5eb3fa2dfecdde21c950813c665e9364fa609bd2"},
-}
 
 func New(eth ethrpc.ETHInterface, config Config) (*Multicall, error) {
-	if config.Preset != "" {
-		preset, ok := presets[config.Preset];
-		if !ok {
-			return nil, fmt.Errorf("preset %s is not defined", config.Preset)
-		}
-
-		config.MulticallAddress = preset.multicallAddress
-	}
-
 	return &Multicall{
 		eth: eth,
 		config: config,
@@ -61,6 +50,7 @@ func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	payload := make(map[string]string)
 	payload["to"] = mc.config.MulticallAddress
 	payload["data"] = AggregateMethod + hex.EncodeToString(payloadArgs)
+	payload["gas"] = mc.config.Gas
 	var resultRaw string
 	err = mc.eth.MakeRequest(&resultRaw, ethrpc.ETHCall, payload, block)
 	if err != nil {

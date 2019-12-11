@@ -20,9 +20,7 @@ func ExampleViwCall() {
 			Arguments: []interface{}{},
 		},
 	}
-	mc, _ := multicall.New(eth, multicall.Config{
-		Preset: "mainnet",
-	})
+	mc, _ := multicall.New(eth, multicall.MainnetConfig)
 	block := "latest"
 	res, err := mc.Call(vcs, block)
 	if err != nil {
