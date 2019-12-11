@@ -173,12 +173,12 @@ type wrapperRet struct {
 	Returns []retType
 }
 
-func (calls ViewCalls) decode(raw string) (*multicall.Result, error) {
+func (calls ViewCalls) decode(raw string) (*Result, error) {
 	rawBytes, err := hex.DecodeString(strings.Replace(raw, "0x", "", -1))
 	if err != nil {
 		return nil, err
 	}
-	result := &multicall.Result{}
+	result := &Result{}
 
 	uint256Type, err := abi.NewType("uint256", "", nil)
 	if err != nil {
@@ -208,13 +208,13 @@ func (calls ViewCalls) decode(raw string) (*multicall.Result, error) {
 	}
 
 	result.BlockNumber = decoded.BlockNumber.Uint64()
-	result.Calls = make(map[string]multicall.CallResult)
+	result.Calls = make(map[string]CallResult)
 	for index, call := range calls {
 		returnValues, err := call.decode(decoded.Returns[index].Data)
 		if err != nil {
 			return nil, err
 		}
-		callResult := multicall.CallResult{
+		callResult := CallResult{
 			Success: decoded.Returns[index].Success,
 			ReturnValues: returnValues,
 		}
