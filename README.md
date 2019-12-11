@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/Alethio/multicall-go.svg?style=svg)](https://circleci.com/gh/Alethio/multicall-go)
+
 ### Multicall
 
 Wrapper for [Multicall](https://github.com/bowd/multicall) which batches calls to contract
