@@ -17,7 +17,7 @@ We have deployed two variants on Mainnet and Ropsten so far by using the provide
 // Mainnet
 mc, err := multicall.New(eth, multicall.MainnetConfig)
 // Ropsten
-mc, err := multicall.New(eth, multicall.MainnetConfig)
+mc, err := multicall.New(eth, multicall.RopstenConfig)
 ```
 
 Alternatively the address can be passed in directly:
