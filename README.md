@@ -7,11 +7,11 @@ view functions into a single call and reads all the state in one EVM round-trip.
 
 ### Usage
 
-The library is used in conjunction with [web3-go](https://github.com/Alethio/web3-go), and the first parameter is an `ethrpc.ETHInterface` as defined in the package.
+The library is used in conjunction with [web3-go](https://github.com/Alethio/web3-go), and the first parameter to `multicall.New` is an `ethrpc.ETHInterface` as defined in the package.
 
 #### Initialization
 
-The library requires teh [Multicall](https://github.com/bowd/multicall) contract to pe deployed on the target chain.
+The library requires the [Multicall](https://github.com/bowd/multicall) contract to pe deployed on the target chain.
 We have deployed two variants on Mainnet and Ropsten so far which can be used by using the provided configs.
 
 
