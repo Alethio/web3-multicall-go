@@ -7,10 +7,12 @@ view functions into a single call and reads all the state in one EVM round-trip.
 
 ### Usage
 
+The library is used in conjunction with [web3-go](https://github.com/Alethio/web3-go), and the first parameter is an `ethrpc.ETHInterface` as defined in the package.
+
 #### Initialization
 
-The library needs to be used in conjuction with a contract deployed on chain.
-We have deployed two variants on Mainnet and Ropsten so far by using the provided configs:
+The library requires teh [Multicall](https://github.com/bowd/multicall) contract to pe deployed on the target chain.
+We have deployed two variants on Mainnet and Ropsten so far which can be used by using the provided configs.
 
 
 ```go
@@ -20,7 +22,7 @@ mc, err := multicall.New(eth, multicall.MainnetConfig)
 mc, err := multicall.New(eth, multicall.RopstenConfig)
 ```
 
-Alternatively the address can be passed in directly:
+Otherwise you can define your own config passing in a custom address:
 
 ```go
 mc, err := multicall.New(eth, multicall.Config{
