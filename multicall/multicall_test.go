@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/alethio/web3-go/ethrpc"
 	"github.com/alethio/web3-go/ethrpc/provider/httprpc"
-	"github.com/alethio/multicall-go/multicall"
+	"github.com/alethio/web3-multicall-go/multicall"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func ExampleViwCall() {
 			Arguments: []interface{}{},
 		},
 	}
-	mc, _ := multicall.New(eth, multicall.MainnetConfig)
+	mc, _ := multicall.New(eth)
 	block := "latest"
 	res, err := mc.Call(vcs, block)
 	if err != nil {

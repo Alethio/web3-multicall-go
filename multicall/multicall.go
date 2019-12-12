@@ -7,23 +7,20 @@ import (
 
 type Multicall struct {
 	eth    ethrpc.ETHInterface
-	config Config
+	config *Config
 }
 
-type Config struct {
-	MulticallAddress string
-	Gas				 string
-}
 
-var (
-	// MainnetConfig exposes a default config for the mainnet multicall contract
-	MainnetConfig = Config{"0x5eb3fa2dfecdde21c950813c665e9364fa609bd2", "0x4000000000000"}
-	// RopstenConfig exposes a default config for the ropsten multicall contract
-	RopstenConfig = Config{"0xf3ad7e31b052ff96566eedd218a823430e74b406", "0x4000000000000"}
-)
+func New(eth ethrpc.ETHInterface, opts ...Option) (*Multicall, error) {
+	config := &Config {
+		MulticallAddress: MainnetAddress,
+		Gas: "0x400000000",
+	}
 
+	for _, opt := range opts {
+		opt(config)
+	}
 
-func New(eth ethrpc.ETHInterface, config Config) (*Multicall, error) {
 	return &Multicall{
 		eth: eth,
 		config: config,

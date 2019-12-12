@@ -17,18 +17,16 @@ We have deployed two variants on Mainnet and Ropsten so far which can be used by
 
 ```go
 // Mainnet
-mc, err := multicall.New(eth, multicall.MainnetConfig)
+mc, err := multicall.New(eth, multicall.ContractAddress(multicall.MainnetAddress))
 // Ropsten
-mc, err := multicall.New(eth, multicall.RopstenConfig)
+mc, err := multicall.New(eth, multicall.ContractAddress(multicall.RopstenAddress))
 ```
 
-Otherwise you can define your own config passing in a custom address:
+
+You can also set the gas used for the read transaction:
 
 ```go
-mc, err := multicall.New(eth, multicall.Config{
-    MulticallAddress: "0x0",
-    Gas: "0x400000000",
-})
+mc, err := multicall.New(eth, multicall.ContractAddress(multicall.RopstenAddress), multicall.SetGas(40000))
 ```
 
 In this case the contract deployed has to maintain the same function signature as the original one.
