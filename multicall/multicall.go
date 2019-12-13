@@ -56,4 +56,8 @@ func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	return calls.decode(resultRaw)
 }
 
+func (mc *Multicall) Contract() string {
+	return mc.config.MulticallAddress
+}
+
 
