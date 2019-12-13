@@ -173,12 +173,11 @@ type wrapperRet struct {
 	Returns []retType
 }
 
-func (calls ViewCalls) decode(raw string) (*Result, error) {
+func (calls ViewCalls) decodeWrapper(raw string) (*wrapperRet, error) {
 	rawBytes, err := hex.DecodeString(strings.Replace(raw, "0x", "", -1))
 	if err != nil {
 		return nil, err
 	}
-	result := &Result{}
 
 	uint256Type, err := abi.NewType("uint256", "", nil)
 	if err != nil {
@@ -203,10 +202,35 @@ func (calls ViewCalls) decode(raw string) (*Result, error) {
 	}
 	decoded := wrapperRet{}
 	err = wrapperArgs.Unpack(&decoded, rawBytes)
+	return &decoded, err
+}
+
+func (calls ViewCalls) decodeRaw(raw string) (*Result, error) {
+	decoded, err := calls.decodeWrapper(raw)
 	if err != nil {
 		return nil, err
 	}
+	result := &Result{}
+	result.BlockNumber = decoded.BlockNumber.Uint64()
+	result.Calls = make(map[string]CallResult)
 
+	for index, call := range calls {
+		callResult := CallResult{
+			Success: decoded.Returns[index].Success,
+			ReturnValues: []interface{}{decoded.Returns[index].Data},
+		}
+		result.Calls[call.Key] = callResult
+	}
+
+	return result, nil
+}
+
+func (calls ViewCalls) decode(raw string) (*Result, error) {
+	decoded, err := calls.decodeWrapper(raw)
+	if err != nil {
+		return nil, err
+	}
+	result := &Result{}
 	result.BlockNumber = decoded.BlockNumber.Uint64()
 	result.Calls = make(map[string]CallResult)
 	for index, call := range calls {

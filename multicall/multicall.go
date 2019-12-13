@@ -39,7 +39,23 @@ type Result struct {
 
 const AggregateMethod = "0x17352e13"
 
-func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
+func (mc *Multicall) CallRaw(calls ViewCalls, block string) (*Result, error) {
+	resultRaw, err := mc.makeRequest(calls, block)
+	if err != nil {
+		return nil, err
+	}
+	return calls.decodeRaw(resultRaw)
+}
+
+func (mc *Multicall) Raw(calls ViewCalls, block string) (*Result, error) {
+	resultRaw, err := mc.makeRequest(calls, block)
+	if err != nil {
+		return nil, err
+	}
+	return calls.decode(resultRaw)
+}
+
+func (mc *Multicall) makeRequest(calls ViewCalls, block string) (string, error) {
 	payloadArgs, err := calls.callData()
 	if err != nil {
 		return nil, err
@@ -50,10 +66,7 @@ func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	payload["gas"] = mc.config.Gas
 	var resultRaw string
 	err = mc.eth.MakeRequest(&resultRaw, ethrpc.ETHCall, payload, block)
-	if err != nil {
-		return nil, err
-	}
-	return calls.decode(resultRaw)
+	return resultRaw, err
 }
 
 func (mc *Multicall) Contract() string {
