@@ -47,7 +47,7 @@ func (mc *Multicall) CallRaw(calls ViewCalls, block string) (*Result, error) {
 	return calls.decodeRaw(resultRaw)
 }
 
-func (mc *Multicall) Raw(calls ViewCalls, block string) (*Result, error) {
+func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	resultRaw, err := mc.makeRequest(calls, block)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (mc *Multicall) Raw(calls ViewCalls, block string) (*Result, error) {
 func (mc *Multicall) makeRequest(calls ViewCalls, block string) (string, error) {
 	payloadArgs, err := calls.callData()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	payload := make(map[string]string)
 	payload["to"] = mc.config.MulticallAddress
