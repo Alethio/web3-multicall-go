@@ -225,8 +225,9 @@ func (calls ViewCalls) decodeRaw(raw string) (*Result, error) {
 
 	for index, call := range calls {
 		callResult := CallResult{
-			Success:      decoded.Returns[index].Success,
-			ReturnValues: []interface{}{decoded.Returns[index].Data},
+			Success: decoded.Returns[index].Success,
+			Raw:     decoded.Returns[index].Data,
+			Decoded: []interface{}{},
 		}
 		result.Calls[call.id] = callResult
 	}
@@ -248,8 +249,9 @@ func (calls ViewCalls) decode(raw string) (*Result, error) {
 			return nil, err
 		}
 		callResult := CallResult{
-			Success:      decoded.Returns[index].Success,
-			ReturnValues: returnValues,
+			Success: decoded.Returns[index].Success,
+			Raw:     decoded.Returns[index].Data,
+			Decoded: returnValues,
 		}
 		result.Calls[call.id] = callResult
 	}

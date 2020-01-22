@@ -33,8 +33,9 @@ func New(eth ethrpc.ETHInterface, opts ...Option) (Multicall, error) {
 }
 
 type CallResult struct {
-	Success      bool
-	ReturnValues []interface{}
+	Success bool
+	Raw     []byte
+	Decoded []interface{}
 }
 
 type Result struct {
