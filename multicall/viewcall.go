@@ -10,19 +10,29 @@ import (
 	"strings"
 )
 
-type ViewCall struct {
-	Key       string
-	Target    string
-	Method    string
-	Arguments []interface{}
+type viewCall struct {
+	id        string
+	target    string
+	method    string
+	arguments []interface{}
 }
 
-type ViewCalls []ViewCall
+type ViewCalls []viewCall
+
+func NewViewCall(id, target, method string, arguments []interface{}) viewCall {
+	return viewCall{
+		id:        id,
+		target:    target,
+		method:    method,
+		arguments: arguments,
+	}
+
+}
 
 var insideParens = regexp.MustCompile("\\(.*?\\)")
 
-func (vc ViewCall) argumentTypes() []string {
-	rawArgs := insideParens.FindAllString(vc.Method, -1)[0]
+func (vc viewCall) argumentTypes() []string {
+	rawArgs := insideParens.FindAllString(vc.method, -1)[0]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	if rawArgs == "" {
@@ -35,8 +45,8 @@ func (vc ViewCall) argumentTypes() []string {
 	return args
 }
 
-func (vc ViewCall) returnTypes() []string {
-	rawArgs := insideParens.FindAllString(vc.Method, -1)[1]
+func (vc viewCall) returnTypes() []string {
+	rawArgs := insideParens.FindAllString(vc.method, -1)[1]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	args := strings.Split(rawArgs, ",")
@@ -46,7 +56,7 @@ func (vc ViewCall) returnTypes() []string {
 	return args
 }
 
-func (call ViewCall) callData() ([]byte, error) {
+func (call viewCall) callData() ([]byte, error) {
 	argsSuffix, err := call.argsCallData()
 	if err != nil {
 		return nil, err
@@ -56,7 +66,6 @@ func (call ViewCall) callData() ([]byte, error) {
 		return nil, err
 	}
 
-
 	payload := make([]byte, 0)
 	payload = append(payload, methodPrefix...)
 	payload = append(payload, argsSuffix...)
@@ -64,8 +73,8 @@ func (call ViewCall) callData() ([]byte, error) {
 	return payload, nil
 }
 
-func (call ViewCall) methodCallData() ([]byte, error) {
-	methodParts := strings.Split(call.Method, ")(")
+func (call viewCall) methodCallData() ([]byte, error) {
+	methodParts := strings.Split(call.method, ")(")
 	var method string
 	if len(methodParts) > 1 {
 		method = fmt.Sprintf("%s)", methodParts[0])
@@ -76,11 +85,11 @@ func (call ViewCall) methodCallData() ([]byte, error) {
 	return hash[0:4], nil
 }
 
-func (call ViewCall) argsCallData() ([]byte, error) {
+func (call viewCall) argsCallData() ([]byte, error) {
 	argTypes := call.argumentTypes()
-	argValues := make([]interface{}, len(call.Arguments))
-	if len(argTypes) != len(call.Arguments) {
-		return nil, fmt.Errorf("number of argument types doesn't match with number of arguments for %s with method %s", call.Key, call.Method)
+	argValues := make([]interface{}, len(call.arguments))
+	if len(argTypes) != len(call.arguments) {
+		return nil, fmt.Errorf("number of argument types doesn't match with number of arguments for %s with method %s", call.id, call.method)
 	}
 	args := make(abi.Arguments, 0, 0)
 	for index, argTypeStr := range argTypes {
@@ -92,18 +101,18 @@ func (call ViewCall) argsCallData() ([]byte, error) {
 		args = append(args, abi.Argument{Type: argType})
 
 		if argTypeStr == "address" {
-			argValues[index], err = toByteArray(call.Arguments[index].(string))
+			argValues[index], err = toByteArray(call.arguments[index].(string))
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			argValues[index] = call.Arguments[index]
+			argValues[index] = call.arguments[index]
 		}
 	}
 	return args.Pack(argValues...)
 }
 
-func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
+func (call viewCall) decode(raw []byte) ([]interface{}, error) {
 	retTypes := call.returnTypes()
 	args := make(abi.Arguments, 0, 0)
 	for index, retTypeStr := range retTypes {
@@ -127,7 +136,7 @@ func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
 }
 
 type callArgs struct {
-	Target [20]byte
+	Target   [20]byte
 	CallData []byte
 }
 
@@ -138,7 +147,7 @@ func (calls ViewCalls) callData() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		targetBytes, err := toByteArray(call.Target)
+		targetBytes, err := toByteArray(call.target)
 		if err != nil {
 			return nil, err
 		}
@@ -158,19 +167,19 @@ func (calls ViewCalls) callData() ([]byte, error) {
 	}
 	args := abi.Arguments{
 		{Type: tupleArray, Name: "calls"},
-		{Type: boolean, Name: "strict" },
+		{Type: boolean, Name: "strict"},
 	}
 	return args.Pack(payloadArgs, false)
 }
 
 type retType struct {
 	Success bool
-	Data []byte
+	Data    []byte
 }
 
 type wrapperRet struct {
 	BlockNumber *big.Int
-	Returns []retType
+	Returns     []retType
 }
 
 func (calls ViewCalls) decodeWrapper(raw string) (*wrapperRet, error) {
@@ -216,10 +225,10 @@ func (calls ViewCalls) decodeRaw(raw string) (*Result, error) {
 
 	for index, call := range calls {
 		callResult := CallResult{
-			Success: decoded.Returns[index].Success,
+			Success:      decoded.Returns[index].Success,
 			ReturnValues: []interface{}{decoded.Returns[index].Data},
 		}
-		result.Calls[call.Key] = callResult
+		result.Calls[call.id] = callResult
 	}
 
 	return result, nil
@@ -239,17 +248,17 @@ func (calls ViewCalls) decode(raw string) (*Result, error) {
 			return nil, err
 		}
 		callResult := CallResult{
-			Success: decoded.Returns[index].Success,
+			Success:      decoded.Returns[index].Success,
 			ReturnValues: returnValues,
 		}
-		result.Calls[call.Key] = callResult
+		result.Calls[call.id] = callResult
 	}
 
 	return result, nil
 }
 
 func toByteArray(address string) ([20]byte, error) {
-	var addressBytes [20]byte;
+	var addressBytes [20]byte
 	address = strings.Replace(address, "0x", "", -1)
 	addressBytesSlice, err := hex.DecodeString(address)
 	if err != nil {
@@ -259,4 +268,3 @@ func toByteArray(address string) ([20]byte, error) {
 	copy(addressBytes[:], addressBytesSlice[:])
 	return addressBytes, nil
 }
-

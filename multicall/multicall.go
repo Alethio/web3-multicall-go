@@ -5,41 +5,46 @@ import (
 	"github.com/alethio/web3-go/ethrpc"
 )
 
-type Multicall struct {
+type Multicall interface {
+	CallRaw(calls ViewCalls, block string) (*Result, error)
+	Call(calls ViewCalls, block string) (*Result, error)
+	Contract() string
+}
+
+type multicall struct {
 	eth    ethrpc.ETHInterface
 	config *Config
 }
 
-
-func New(eth ethrpc.ETHInterface, opts ...Option) (*Multicall, error) {
-	config := &Config {
+func New(eth ethrpc.ETHInterface, opts ...Option) (Multicall, error) {
+	config := &Config{
 		MulticallAddress: MainnetAddress,
-		Gas: "0x400000000",
+		Gas:              "0x400000000",
 	}
 
 	for _, opt := range opts {
 		opt(config)
 	}
 
-	return &Multicall{
-		eth: eth,
+	return &multicall{
+		eth:    eth,
 		config: config,
 	}, nil
 }
 
 type CallResult struct {
-	Success bool
+	Success      bool
 	ReturnValues []interface{}
 }
 
 type Result struct {
 	BlockNumber uint64
-	Calls map[string]CallResult
+	Calls       map[string]CallResult
 }
 
 const AggregateMethod = "0x17352e13"
 
-func (mc *Multicall) CallRaw(calls ViewCalls, block string) (*Result, error) {
+func (mc multicall) CallRaw(calls ViewCalls, block string) (*Result, error) {
 	resultRaw, err := mc.makeRequest(calls, block)
 	if err != nil {
 		return nil, err
@@ -47,7 +52,7 @@ func (mc *Multicall) CallRaw(calls ViewCalls, block string) (*Result, error) {
 	return calls.decodeRaw(resultRaw)
 }
 
-func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
+func (mc multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	resultRaw, err := mc.makeRequest(calls, block)
 	if err != nil {
 		return nil, err
@@ -55,7 +60,7 @@ func (mc *Multicall) Call(calls ViewCalls, block string) (*Result, error) {
 	return calls.decode(resultRaw)
 }
 
-func (mc *Multicall) makeRequest(calls ViewCalls, block string) (string, error) {
+func (mc multicall) makeRequest(calls ViewCalls, block string) (string, error) {
 	payloadArgs, err := calls.callData()
 	if err != nil {
 		return "", err
@@ -69,8 +74,6 @@ func (mc *Multicall) makeRequest(calls ViewCalls, block string) (string, error) 
 	return resultRaw, err
 }
 
-func (mc *Multicall) Contract() string {
+func (mc multicall) Contract() string {
 	return mc.config.MulticallAddress
 }
-
-

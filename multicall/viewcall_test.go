@@ -6,11 +6,11 @@ import (
 )
 
 func TestViewCall(t *testing.T) {
-	vc := ViewCall{
-		Key: "key",
-		Target: "0x0",
-		Method: "balanceOf(address, uint64)(int256)",
-		Arguments: []interface{}{"0x1234", uint64(12)},
+	vc := viewCall{
+		id:        "key",
+		target:    "0x0",
+		method:    "balanceOf(address, uint64)(int256)",
+		arguments: []interface{}{"0x1234", uint64(12)},
 	}
 	expectedArgTypes := []string{"address", "uint64"}
 	expectedCallData := []byte{

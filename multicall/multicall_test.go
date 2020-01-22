@@ -9,17 +9,15 @@ import (
 	"time"
 )
 
-
 func ExampleViwCall() {
 	eth, err := getETH("https://mainnet.infura.io/")
-	vcs := multicall.ViewCalls{
-		{
-			Key:       "key.1",
-			Target:    "0x5eb3fa2dfecdde21c950813c665e9364fa609bd2",
-			Method:    "getLastBlockHash()(bytes32)",
-			Arguments: []interface{}{},
-		},
-	}
+	vc := multicall.NewViewCall(
+		"key.1",
+		"0x5eb3fa2dfecdde21c950813c665e9364fa609bd2",
+		"getLastBlockHash()(bytes32)",
+		[]interface{}{},
+	)
+	vcs := multicall.ViewCalls{vc}
 	mc, _ := multicall.New(eth)
 	block := "latest"
 	res, err := mc.Call(vcs, block)
@@ -41,4 +39,3 @@ func getETH(url string) (ethrpc.ETHInterface, error) {
 	provider.SetHTTPTimeout(5 * time.Second)
 	return ethrpc.New(provider)
 }
-
