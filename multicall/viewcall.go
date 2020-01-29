@@ -29,10 +29,17 @@ func NewViewCall(id, target, method string, arguments []interface{}) viewCall {
 
 }
 
+func (call viewCall) Validate() error {
+	if _, err := call.argsCallData(); err != nil {
+		return err
+	}
+	return nil
+}
+
 var insideParens = regexp.MustCompile("\\(.*?\\)")
 
-func (vc viewCall) argumentTypes() []string {
-	rawArgs := insideParens.FindAllString(vc.method, -1)[0]
+func (call viewCall) argumentTypes() []string {
+	rawArgs := insideParens.FindAllString(call.method, -1)[0]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	if rawArgs == "" {
@@ -45,8 +52,8 @@ func (vc viewCall) argumentTypes() []string {
 	return args
 }
 
-func (vc viewCall) returnTypes() []string {
-	rawArgs := insideParens.FindAllString(vc.method, -1)[1]
+func (call viewCall) returnTypes() []string {
+	rawArgs := insideParens.FindAllString(call.method, -1)[1]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	args := strings.Split(rawArgs, ",")
@@ -128,7 +135,7 @@ func (call viewCall) decode(raw []byte) ([]interface{}, error) {
 		return nil, err
 	}
 	returns := make([]interface{}, len(retTypes))
-	for index, _ := range retTypes {
+	for index := range retTypes {
 		key := fmt.Sprintf("ret%d", index)
 		returns[index] = decoded[key]
 	}
