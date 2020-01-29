@@ -255,14 +255,16 @@ func (calls ViewCalls) decode(raw string) (*Result, error) {
 	result.BlockNumber = decoded.BlockNumber.Uint64()
 	result.Calls = make(map[string]CallResult)
 	for index, call := range calls {
-		returnValues, err := call.decode(decoded.Returns[index].Data)
-		if err != nil {
-			return nil, err
-		}
 		callResult := CallResult{
 			Success: decoded.Returns[index].Success,
 			Raw:     decoded.Returns[index].Data,
-			Decoded: returnValues,
+		}
+		if decoded.Returns[index].Success {
+			returnValues, err := call.decode(decoded.Returns[index].Data)
+			if err != nil {
+				return nil, err
+			}
+			callResult.Decoded = returnValues
 		}
 		result.Calls[call.id] = callResult
 	}
