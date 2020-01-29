@@ -6,7 +6,7 @@ import (
 )
 
 func TestViewCall(t *testing.T) {
-	vc := viewCall{
+	vc := ViewCall{
 		id:        "key",
 		target:    "0x0",
 		method:    "balanceOf(address, uint64)(int256)",

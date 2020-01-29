@@ -10,17 +10,17 @@ import (
 	"strings"
 )
 
-type viewCall struct {
+type ViewCall struct {
 	id        string
 	target    string
 	method    string
 	arguments []interface{}
 }
 
-type ViewCalls []viewCall
+type ViewCalls []ViewCall
 
-func NewViewCall(id, target, method string, arguments []interface{}) viewCall {
-	return viewCall{
+func NewViewCall(id, target, method string, arguments []interface{}) ViewCall {
+	return ViewCall{
 		id:        id,
 		target:    target,
 		method:    method,
@@ -29,7 +29,7 @@ func NewViewCall(id, target, method string, arguments []interface{}) viewCall {
 
 }
 
-func (call viewCall) Validate() error {
+func (call ViewCall) Validate() error {
 	if _, err := call.argsCallData(); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (call viewCall) Validate() error {
 
 var insideParens = regexp.MustCompile("\\(.*?\\)")
 
-func (call viewCall) argumentTypes() []string {
+func (call ViewCall) argumentTypes() []string {
 	rawArgs := insideParens.FindAllString(call.method, -1)[0]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
@@ -52,7 +52,7 @@ func (call viewCall) argumentTypes() []string {
 	return args
 }
 
-func (call viewCall) returnTypes() []string {
+func (call ViewCall) returnTypes() []string {
 	rawArgs := insideParens.FindAllString(call.method, -1)[1]
 	rawArgs = strings.Replace(rawArgs, "(", "", -1)
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
@@ -63,7 +63,7 @@ func (call viewCall) returnTypes() []string {
 	return args
 }
 
-func (call viewCall) callData() ([]byte, error) {
+func (call ViewCall) callData() ([]byte, error) {
 	argsSuffix, err := call.argsCallData()
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (call viewCall) callData() ([]byte, error) {
 	return payload, nil
 }
 
-func (call viewCall) methodCallData() ([]byte, error) {
+func (call ViewCall) methodCallData() ([]byte, error) {
 	methodParts := strings.Split(call.method, ")(")
 	var method string
 	if len(methodParts) > 1 {
@@ -92,7 +92,7 @@ func (call viewCall) methodCallData() ([]byte, error) {
 	return hash[0:4], nil
 }
 
-func (call viewCall) argsCallData() ([]byte, error) {
+func (call ViewCall) argsCallData() ([]byte, error) {
 	argTypes := call.argumentTypes()
 	argValues := make([]interface{}, len(call.arguments))
 	if len(argTypes) != len(call.arguments) {
@@ -119,7 +119,7 @@ func (call viewCall) argsCallData() ([]byte, error) {
 	return args.Pack(argValues...)
 }
 
-func (call viewCall) decode(raw []byte) ([]interface{}, error) {
+func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
 	retTypes := call.returnTypes()
 	args := make(abi.Arguments, 0, 0)
 	for index, retTypeStr := range retTypes {

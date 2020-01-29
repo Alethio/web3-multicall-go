@@ -25,7 +25,7 @@ func ExampleViwCall() {
 		panic(err)
 	}
 	fmt.Println(res)
-	blockHash := res.Calls["key.4"].ReturnValues[0].([32]byte)
+	blockHash := res.Calls["key.4"].Decoded[0].([32]byte)
 	fmt.Println(hex.EncodeToString(blockHash[:]))
 	fmt.Println(err)
 
