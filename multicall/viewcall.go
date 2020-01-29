@@ -141,7 +141,12 @@ func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
 	returns := make([]interface{}, len(retTypes))
 	for index := range retTypes {
 		key := fmt.Sprintf("ret%d", index)
-		returns[index] = decoded[key]
+		item := decoded[key]
+		if bigint, ok := item.(big.Int); ok {
+			returns[index] = bigint.String()
+		} else {
+			returns[index] = decoded[key]
+		}
 	}
 	return returns, nil
 }
