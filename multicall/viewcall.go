@@ -108,7 +108,11 @@ func (call ViewCall) argsCallData() ([]byte, error) {
 		args = append(args, abi.Argument{Type: argType})
 
 		if argTypeStr == "address" {
-			argValues[index], err = toByteArray(call.arguments[index].(string))
+			address, ok := call.arguments[index].(string)
+			if !ok {
+				return nil, fmt.Errorf("expected address argument to be a string")
+			}
+			argValues[index], err = toByteArray(address)
 			if err != nil {
 				return nil, err
 			}

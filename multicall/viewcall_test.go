@@ -28,3 +28,16 @@ func TestViewCall(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, expectedCallData, callData)
 }
+
+func TestCatchPanicOnInterfaceIssue(t *testing.T) {
+	vc := ViewCall{
+		id:        "key",
+		target:    "0x0",
+		method:    "balanceOf(address)(int256)",
+		arguments: []interface{}{1234},
+	}
+
+	err := vc.Validate()
+	assert.NotNil(t, err)
+	assert.Error(t, err, "expected address argument to be a string")
+}
