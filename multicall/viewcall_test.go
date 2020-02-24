@@ -41,3 +41,24 @@ func TestCatchPanicOnInterfaceIssue(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "expected address argument to be a string")
 }
+
+func TestEncodeNumericArgument(t *testing.T) {
+	vc1 := ViewCall{
+		id:        "key",
+		target:    "0x0",
+		method:    "balanceOf(uint256)(int256)",
+		arguments: []interface{}{"12312312312313"},
+	}
+	vc2 := ViewCall{
+		id:        "key",
+		target:    "0x0",
+		method:    "balanceOf(uint256)(int256)",
+		arguments: []interface{}{12312312312313},
+	}
+
+	data1, err1 := vc1.argsCallData()
+	data2, err2 := vc2.argsCallData()
+	assert.Nil(t, err1)
+	assert.Nil(t, err2)
+	assert.Equal(t, data1, data2)
+}

@@ -1,20 +1,21 @@
 package multicall_test
 
 import (
-	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/alethio/web3-go/ethrpc"
 	"github.com/alethio/web3-go/ethrpc/provider/httprpc"
 	"github.com/alethio/web3-multicall-go/multicall"
+	"testing"
 	"time"
 )
 
-func ExampleViwCall() {
-	eth, err := getETH("https://mainnet.infura.io/")
+func TestExampleViwCall(t *testing.T) {
+	eth, err := getETH("https://mainnet.infura.io/v3/17ed7fe26d014e5b9be7dfff5368c69d")
 	vc := multicall.NewViewCall(
 		"key.1",
-		"0x5eb3fa2dfecdde21c950813c665e9364fa609bd2",
-		"getLastBlockHash()(bytes32)",
+		"0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+		"totalReserves()(uint256)",
 		[]interface{}{},
 	)
 	vcs := multicall.ViewCalls{vc}
@@ -24,9 +25,10 @@ func ExampleViwCall() {
 	if err != nil {
 		panic(err)
 	}
+
+	resJson, _ := json.Marshal(res)
+	fmt.Println(string(resJson))
 	fmt.Println(res)
-	blockHash := res.Calls["key.4"].Decoded[0].([32]byte)
-	fmt.Println(hex.EncodeToString(blockHash[:]))
 	fmt.Println(err)
 
 }

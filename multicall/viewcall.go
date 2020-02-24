@@ -2,10 +2,12 @@ package multicall
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -37,6 +39,7 @@ func (call ViewCall) Validate() error {
 }
 
 var insideParens = regexp.MustCompile("\\(.*?\\)")
+var numericArg = regexp.MustCompile("u?int(256)|(8)")
 
 func (call ViewCall) argumentTypes() []string {
 	rawArgs := insideParens.FindAllString(call.method, -1)[0]
@@ -94,33 +97,63 @@ func (call ViewCall) methodCallData() ([]byte, error) {
 
 func (call ViewCall) argsCallData() ([]byte, error) {
 	argTypes := call.argumentTypes()
-	argValues := make([]interface{}, len(call.arguments))
 	if len(argTypes) != len(call.arguments) {
 		return nil, fmt.Errorf("number of argument types doesn't match with number of arguments for %s with method %s", call.id, call.method)
 	}
-	args := make(abi.Arguments, 0, 0)
+	argumentValues := make([]interface{}, len(call.arguments))
+	arguments := make(abi.Arguments, len(call.arguments))
+
 	for index, argTypeStr := range argTypes {
 		argType, err := abi.NewType(argTypeStr, "", nil)
 		if err != nil {
 			return nil, err
 		}
 
-		args = append(args, abi.Argument{Type: argType})
-
-		if argTypeStr == "address" {
-			address, ok := call.arguments[index].(string)
-			if !ok {
-				return nil, fmt.Errorf("expected address argument to be a string")
-			}
-			argValues[index], err = toByteArray(address)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			argValues[index] = call.arguments[index]
+		arguments[index] = abi.Argument{Type: argType}
+		argumentValues[index], err = call.getArgument(index, argTypeStr)
+		if err != nil {
+			return nil, err
 		}
 	}
-	return args.Pack(argValues...)
+
+	return arguments.Pack(argumentValues...)
+}
+
+func (call ViewCall) getArgument(index int, argumentType string) (interface{}, error) {
+	arg := call.arguments[index]
+	if argumentType == "address" {
+		address, ok := arg.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected address argument to be a string")
+		}
+		return toByteArray(address)
+	} else if numericArg.MatchString(argumentType) {
+		if num, ok := arg.(json.Number); ok {
+			if v, err := num.Int64(); err != nil {
+				return big.NewInt(v), nil
+			} else if v, err := num.Float64(); err != nil {
+				return big.NewInt(int64(v)), nil
+			} else {
+			}
+		} else {
+			int64 := reflect.TypeOf(int64(0))
+			argType := reflect.TypeOf(arg)
+			kind := argType.Kind()
+			if kind == reflect.String {
+				if val, ok := new(big.Int).SetString(call.arguments[index].(string), 10); !ok {
+					return nil, fmt.Errorf("could not parse %s as a base 10 number", call.arguments[index])
+				} else {
+					return val, nil
+				}
+			} else if argType.ConvertibleTo(int64) {
+				return big.NewInt(reflect.ValueOf(arg).Convert(int64).Int()), nil
+			}
+		}
+	}
+	return nil, fmt.Errorf(
+		"error encoding argument %d of type %s with value %v",
+		index, argumentType, call.arguments[index],
+	)
 }
 
 func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
