@@ -62,3 +62,17 @@ func TestEncodeNumericArgument(t *testing.T) {
 	assert.Nil(t, err2)
 	assert.Equal(t, data1, data2)
 }
+
+func TestEncodeBytes32Argument(t *testing.T) {
+	var bytes32Array = [32]uint8{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+
+	vc1 := ViewCall{
+		id:        "key",
+		target:    "0x0",
+		method:    "balanceOfPartition(bytes32, uint256)(int256)",
+		arguments: []interface{}{bytes32Array, "12312312312313"},
+	}
+
+	_, err1 := vc1.argsCallData()
+	assert.Nil(t, err1)
+}

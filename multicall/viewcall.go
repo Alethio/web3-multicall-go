@@ -150,10 +150,7 @@ func (call ViewCall) getArgument(index int, argumentType string) (interface{}, e
 			}
 		}
 	}
-	return nil, fmt.Errorf(
-		"error encoding argument %d of type %s with value %v",
-		index, argumentType, call.arguments[index],
-	)
+	return arg, nil
 }
 
 func (call ViewCall) decode(raw []byte) ([]interface{}, error) {
