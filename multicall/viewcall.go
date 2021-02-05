@@ -255,9 +255,23 @@ func (calls ViewCalls) decodeWrapper(raw string) (*wrapperRet, error) {
 			Type: returnType,
 		},
 	}
-	decoded := wrapperRet{}
-	err = wrapperArgs.Unpack(&decoded, rawBytes)
-	return &decoded, err
+	data, err := wrapperArgs.Unpack(rawBytes)
+	if err != nil {
+		return nil, err
+	}
+	decoded := &wrapperRet{
+		BlockNumber: data[0].(*big.Int),
+	}
+	returns := reflect.ValueOf(data[1])
+	for i := 0; i < returns.Len(); i++ {
+		elem := returns.Index(i)
+		ret := retType{
+			Success: elem.FieldByName("Success").Bool(),
+			Data:    elem.FieldByName("Data").Bytes(),
+		}
+		decoded.Returns = append(decoded.Returns, ret)
+	}
+	return decoded, err
 }
 
 func (calls ViewCalls) decodeRaw(raw string) (*Result, error) {
