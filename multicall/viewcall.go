@@ -311,7 +311,7 @@ func (calls ViewCalls) decode(raw string) (*Result, error) {
 		if decoded.Returns[index].Success {
 			returnValues, err := call.decode(decoded.Returns[index].Data)
 			if err != nil {
-				return nil, err
+				callResult.Success = false
 			}
 			callResult.Decoded = returnValues
 		}
