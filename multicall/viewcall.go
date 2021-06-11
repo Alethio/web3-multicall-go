@@ -61,7 +61,10 @@ func (call ViewCall) returnTypes() []string {
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	args := strings.Split(rawArgs, ",")
 	for index, arg := range args {
-		args[index] = strings.Trim(arg, " ")
+	    if strings.TrimSpace(arg) == "uint"{
+		arg = "uint256"
+	    }
+	    args[index] = strings.Trim(arg, " ")
 	}
 	return args
 }
@@ -84,7 +87,7 @@ func (call ViewCall) callData() ([]byte, error) {
 }
 
 func (call ViewCall) methodCallData() ([]byte, error) {
-	methodParts := strings.Split(call.method, ")(")
+	methodParts := strings.Split(strings.TrimSpace(call.Method), ")(")
 	var method string
 	if len(methodParts) > 1 {
 		method = fmt.Sprintf("%s)", methodParts[0])
@@ -104,6 +107,9 @@ func (call ViewCall) argsCallData() ([]byte, error) {
 	arguments := make(abi.Arguments, len(call.arguments))
 
 	for index, argTypeStr := range argTypes {
+		if strings.TrimSpace(argTypeStr) == "uint"{
+			argTypeStr = "uint256"
+		}
 		argType, err := abi.NewType(argTypeStr, "", nil)
 		if err != nil {
 			return nil, err
