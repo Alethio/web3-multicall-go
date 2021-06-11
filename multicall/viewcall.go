@@ -40,6 +40,7 @@ func (call ViewCall) Validate() error {
 
 var insideParens = regexp.MustCompile("\\(.*?\\)")
 var numericArg = regexp.MustCompile("u?int(256)|(8)")
+var uintMatch = regexp.MustCompile("\\buint\\b")
 
 func (call ViewCall) argumentTypes() []string {
 	rawArgs := insideParens.FindAllString(call.method, -1)[0]
@@ -61,10 +62,10 @@ func (call ViewCall) returnTypes() []string {
 	rawArgs = strings.Replace(rawArgs, ")", "", -1)
 	args := strings.Split(rawArgs, ",")
 	for index, arg := range args {
-	    if strings.TrimSpace(arg) == "uint"{
-		arg = "uint256"
-	    }
-	    args[index] = strings.Trim(arg, " ")
+		if strings.TrimSpace(arg) == "uint" {
+			arg = "uint256"
+		}
+		args[index] = strings.Trim(arg, " ")
 	}
 	return args
 }
@@ -87,7 +88,7 @@ func (call ViewCall) callData() ([]byte, error) {
 }
 
 func (call ViewCall) methodCallData() ([]byte, error) {
-	methodParts := strings.Split(strings.ReplaceAll(call.Method, " ", ""), ")(")
+	methodParts := strings.Split(uintMatch.ReplaceAllString(strings.ReplaceAll(call.method, " ", ""), "uint256"), ")(")
 	var method string
 	if len(methodParts) > 1 {
 		method = fmt.Sprintf("%s)", methodParts[0])
@@ -107,7 +108,7 @@ func (call ViewCall) argsCallData() ([]byte, error) {
 	arguments := make(abi.Arguments, len(call.arguments))
 
 	for index, argTypeStr := range argTypes {
-		if strings.TrimSpace(argTypeStr) == "uint"{
+		if strings.TrimSpace(argTypeStr) == "uint" {
 			argTypeStr = "uint256"
 		}
 		argType, err := abi.NewType(argTypeStr, "", nil)
