@@ -87,7 +87,7 @@ func (call ViewCall) callData() ([]byte, error) {
 }
 
 func (call ViewCall) methodCallData() ([]byte, error) {
-	methodParts := strings.Split(strings.TrimSpace(call.Method), ")(")
+	methodParts := strings.Split(strings.ReplaceAll(call.Method, " ", ""), ")(")
 	var method string
 	if len(methodParts) > 1 {
 		method = fmt.Sprintf("%s)", methodParts[0])
